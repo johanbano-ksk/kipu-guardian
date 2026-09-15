@@ -1,0 +1,4 @@
+interface:
+  display_name: "Filtrar alertas críticas"
+  short_description: "Muestra sólo alertas críticas por sus métricas"
+  default_prompt: "Usa $filter-valid-alerts para mostrar únicamente las alertas críticas respaldadas por su propio payload."

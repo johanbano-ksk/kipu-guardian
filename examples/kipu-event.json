@@ -1,0 +1,28 @@
+{
+  "version": "0",
+  "id": "example-event-001",
+  "detail-type": "Anomaly Detected v1",
+  "source": "acceptance.kipu",
+  "account": "123456789012",
+  "time": "2026-07-30T12:00:00Z",
+  "region": "us-east-1",
+  "resources": [],
+  "detail": {
+    "schema_version": "1.0",
+    "alert_id": "example-alert-001",
+    "merchant_code": "20000000100000000000",
+    "merchant_name": "Example Merchant",
+    "country": "Ecuador",
+    "criticality": "Critica",
+    "anomaly_type": "High Volume",
+    "approval_rate": 0.20,
+    "rolling_avg_approval_rate": 0.25,
+    "total_transactions": 100,
+    "declined_count": 80,
+    "top_rejections": "Issuer unavailable",
+    "alert_summary": "Critical approval degradation",
+    "timestamp": "2026-07-30T12:00:00Z",
+    "batch_id": "20260730_120000_abcd1234",
+    "group_name": "world_cup"
+  }
+}

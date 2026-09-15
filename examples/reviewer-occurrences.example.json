@@ -1,0 +1,34 @@
+[
+  {
+    "idempotency_key": "occurrence#event:example-event-001",
+    "record_type": "ALERT_OCCURRENCE",
+    "occurrence_schema_version": "1.0",
+    "event_id": "example-event-001",
+    "event_source": "acceptance.kipu",
+    "detail_type": "Anomaly Detected v1",
+    "schema_version": "1.0",
+    "alert_id": "example-alert-001",
+    "event_time": "2026-08-18T12:00:00+00:00",
+    "alert_timestamp": "2026-08-18T12:00:00+00:00",
+    "publication_timestamp": "2026-08-18T12:00:00+00:00",
+    "recorded_at": "2026-08-18T12:00:01+00:00",
+    "raw_payload": {
+      "schema_version": "1.0",
+      "alert_id": "example-alert-001",
+      "merchant_code": "20000000100000000000",
+      "merchant_name": "Example Merchant",
+      "country": "Ecuador",
+      "criticality": "Critica",
+      "anomaly_type": "High Volume",
+      "approval_rate": 0.2,
+      "rolling_avg_approval_rate": 0.25,
+      "total_transactions": 100,
+      "declined_count": 80,
+      "top_rejections": "Issuer unavailable",
+      "alert_summary": "Critical approval degradation",
+      "timestamp": "2026-08-18T12:00:00Z",
+      "batch_id": "20260818_120000_abcd1234",
+      "group_name": "world_cup"
+    }
+  }
+]

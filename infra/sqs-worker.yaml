@@ -1,0 +1,164 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: EventBridge and SQS resources for the Kipu alert reviewer worker
+
+Parameters:
+  NamePrefix:
+    Type: String
+    Default: kipu-alert-reviewer
+    AllowedPattern: "[a-zA-Z0-9_-]+"
+  EventBusName:
+    Type: String
+    Default: acceptance-intelligence-bus-dev
+  EventSource:
+    Type: String
+    Default: acceptance.kipu
+  EventDetailType:
+    Type: String
+    Default: Anomaly Detected v1
+  DeveloperPrincipalArn:
+    Type: String
+    Description: IAM principal allowed to assume the local MVP worker role
+    AllowedPattern: "arn:[a-z0-9-]+:iam::[0-9]{12}:role/.+"
+Resources:
+  ReviewDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${NamePrefix}-dlq"
+      MessageRetentionPeriod: 1209600
+      SqsManagedSseEnabled: true
+
+  ReviewInputQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${NamePrefix}-input"
+      MessageRetentionPeriod: 345600
+      ReceiveMessageWaitTimeSeconds: 20
+      VisibilityTimeout: 120
+      SqsManagedSseEnabled: true
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt ReviewDeadLetterQueue.Arn
+        maxReceiveCount: 5
+
+  ReviewEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub "${NamePrefix}-events"
+      EventBusName: !Ref EventBusName
+      EventPattern:
+        source:
+          - !Ref EventSource
+        detail-type:
+          - !Ref EventDetailType
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt ReviewInputQueue.Arn
+          Id: ReviewInputQueue
+          DeadLetterConfig:
+            Arn: !GetAtt ReviewDeadLetterQueue.Arn
+          RetryPolicy:
+            MaximumEventAgeInSeconds: 86400
+            MaximumRetryAttempts: 185
+
+  ReviewInputQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref ReviewInputQueue
+        - !Ref ReviewDeadLetterQueue
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowEventBridge
+            Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: sqs:SendMessage
+            Resource:
+              - !GetAtt ReviewInputQueue.Arn
+              - !GetAtt ReviewDeadLetterQueue.Arn
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !GetAtt ReviewEventRule.Arn
+
+  ReviewIdempotencyTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${NamePrefix}-idempotency"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: idempotency_key
+          AttributeType: S
+      KeySchema:
+        - AttributeName: idempotency_key
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      TimeToLiveSpecification:
+        AttributeName: expires_at
+        Enabled: true
+      Tags:
+        - Key: application
+          Value: !Ref NamePrefix
+
+  ReviewLocalWorkerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${NamePrefix}-local-worker-role"
+      MaxSessionDuration: 14400
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Ref DeveloperPrincipalArn
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: reviewer-runtime
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: ConsumeKipuAlerts
+                Effect: Allow
+                Action:
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:ChangeMessageVisibility
+                  - sqs:GetQueueAttributes
+                  - sqs:GetQueueUrl
+                Resource: !GetAtt ReviewInputQueue.Arn
+              - Sid: PersistFilterOutcomes
+                Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:Scan
+                Resource: !GetAtt ReviewIdempotencyTable.Arn
+              - Sid: PublishValidatedAlerts
+                Effect: Allow
+                Action: events:PutEvents
+                Resource: !Sub >-
+                  arn:${AWS::Partition}:events:${AWS::Region}:${AWS::AccountId}:event-bus/${EventBusName}
+
+Outputs:
+  InputQueueUrl:
+    Value: !Ref ReviewInputQueue
+  InputQueueArn:
+    Value: !GetAtt ReviewInputQueue.Arn
+  DeadLetterQueueUrl:
+    Value: !Ref ReviewDeadLetterQueue
+  DeadLetterQueueArn:
+    Value: !GetAtt ReviewDeadLetterQueue.Arn
+  EventBusName:
+    Value: !Ref EventBusName
+  IdempotencyTableName:
+    Value: !Ref ReviewIdempotencyTable
+  IdempotencyTableArn:
+    Value: !GetAtt ReviewIdempotencyTable.Arn
+  LocalWorkerRoleArn:
+    Value: !GetAtt ReviewLocalWorkerRole.Arn

@@ -1,0 +1,46 @@
+name: kipu-alert-reviewer-local
+
+services:
+  localstack:
+    image: localstack/localstack:4.6.0
+    ports:
+      - "4566:4566"
+    environment:
+      SERVICES: events,sqs,dynamodb
+      AWS_DEFAULT_REGION: us-east-1
+      SQS_ENDPOINT_STRATEGY: standard
+      DEBUG: "${LOCALSTACK_DEBUG:-0}"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:4566/_localstack/health"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+    networks:
+      default:
+        aliases:
+          - sqs.us-east-1.localhost.localstack.cloud
+
+  local-worker:
+    build: .
+    depends_on:
+      localstack:
+        condition: service_healthy
+    environment:
+      LOG_LEVEL: INFO
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_REGION: us-east-1
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_ENDPOINT_URL: http://localstack:4566
+      AWS_EC2_METADATA_DISABLED: "true"
+      SQS_INPUT_QUEUE_URL: http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/kipu-alert-reviewer-input
+      SQS_IDEMPOTENCY_TABLE: kipu-alert-reviewer-idempotency
+      SQS_WAIT_TIME_SECONDS: "1"
+      SQS_VISIBILITY_TIMEOUT_SECONDS: "2"
+      SQS_MAX_MESSAGES: "10"
+      ALERT_OCCURRENCE_TTL_HOURS: "720"
+      EVENTBRIDGE_OUTPUT_BUS_NAME: acceptance-intelligence-bus-dev
+      EVENTBRIDGE_OUTPUT_SOURCE: acceptance.reviewer
+      EVENTBRIDGE_OUTPUT_DETAIL_TYPE: Anomaly Validated v1
+      FILTER_POLICY_PATH: /app/config/filter_policy.yaml
+    restart: unless-stopped
