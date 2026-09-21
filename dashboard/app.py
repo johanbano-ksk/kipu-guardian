@@ -363,7 +363,7 @@ async def fetch_live_alerts(request: Request):
             },
             status_code=422,
         )
-
+##TODO: REVISAR QUE SE EXTRAEN SOLO LOTES DE 50 MAX Y LOS DEMÁS DAN NULL
 
 # ── Helpers ──────────────────────────────────────────────────────────
 

@@ -24,6 +24,9 @@
       <nav class="sidebar-nav">
         <div class="nav-section">
           <div class="nav-section-label">Análisis</div>
+          <button class="nav-item" data-page="live" id="nav-live">
+            <span class="icon">⚡</span> Alertas Kipu
+          </button>
           <button class="nav-item active" data-page="analyze" id="nav-analyze">
             <span class="icon">🔍</span> Analizar Alerta
           </button>
@@ -57,6 +60,49 @@
 
     <!-- Main Content -->
     <main class="main-content">
+      <!-- Live Kipu Alerts Page -->
+  <div class="page hidden" id="page-live">
+    <div class="page-header">
+      <h2>⚡ Alertas Kipu</h2>
+      <p>Alertas reales extraídas desde AWS y analizadas por Guardian</p>
+    </div>
+
+    <div class="page-body">
+
+      <div class="card mb-6">
+        <div class="card-header">
+          <h3>Consultar alertas</h3>
+        </div>
+
+        <div class="card-body">
+          <div class="flex items-center gap-3">
+
+            <input
+              type="date"
+              id="live-date"
+              class="json-input"
+              style="height:42px; width:auto;"
+            >
+
+            <button class="btn btn-primary" id="btn-live-alerts">
+              ⚡ Obtener y analizar
+            </button>
+
+            <span
+              id="live-status"
+              style="font-size:12px; color:var(--text-muted)"
+            ></span>
+
+          </div>
+        </div>
+      </div>
+
+      <div id="live-summary"></div>
+
+      <div id="live-alerts"></div>
+
+    </div>
+  </div>
       <!-- Analyze Page -->
       <div class="page" id="page-analyze">
         <div class="page-header">

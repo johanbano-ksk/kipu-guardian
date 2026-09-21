@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initNavigation();
   initUpload();
   initJsonInput();
+  initLiveAlerts();
   await checkHealth();
 });
 
@@ -149,6 +150,320 @@ async function pasteExample() {
     }, null, 2);
     validateInput();
   }
+}
+
+// ── Live Kipu Alerts ────────────────────────────────────────────────
+
+function initLiveAlerts() {
+  const button = document.getElementById('btn-live-alerts');
+  const dateInput = document.getElementById('live-date');
+
+  if (!button || !dateInput) return;
+
+  const today = new Date();
+  dateInput.value = today.toISOString().slice(0, 10);
+
+  button.addEventListener('click', loadLiveAlerts);
+}
+
+
+async function loadLiveAlerts() {
+  const button = document.getElementById('btn-live-alerts');
+  const dateInput = document.getElementById('live-date');
+  const status = document.getElementById('live-status');
+  const summary = document.getElementById('live-summary');
+  const container = document.getElementById('live-alerts');
+
+  const date = dateInput.value;
+
+  if (!date) {
+    status.textContent = 'Selecciona una fecha';
+    return;
+  }
+
+  button.disabled = true;
+  button.innerHTML = '<div class="loading-spinner"></div> Analizando...';
+
+  status.textContent = 'Extrayendo alertas de Kipu...';
+
+  summary.innerHTML = '';
+
+  container.innerHTML = `
+    <div class="loading-overlay">
+      <div class="loading-spinner"></div>
+      Extrayendo alertas y consultando histórico...
+    </div>
+  `;
+
+  try {
+    const res = await fetch(`${API}/api/live-alerts`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        date,
+        mode: 'policy',
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || data.status !== 'completed') {
+      container.innerHTML = renderError(
+        data.message || 'No se pudieron obtener las alertas'
+      );
+      status.textContent = '';
+      return;
+    }
+
+    status.textContent =
+      `${data.total_accepted} alertas · ${data.total_analyzed} analizadas`;
+
+    summary.innerHTML = renderLiveSummary(data);
+    container.innerHTML = renderLiveAlerts(data.alerts || []);
+
+  } catch (err) {
+    container.innerHTML = renderError(
+      `Error de conexión: ${err.message}`
+    );
+
+    status.textContent = '';
+
+  } finally {
+    button.disabled = false;
+    button.innerHTML = '⚡ Obtener y analizar';
+  }
+}
+
+
+function renderLiveSummary(data) {
+  return `
+    <div class="metrics-grid mb-6">
+
+      ${renderMetric(
+        'Recibidas',
+        fmtNum(data.total_received),
+        'Kipu'
+      )}
+
+      ${renderMetric(
+        'Evaluadas',
+        fmtNum(data.total_evaluated),
+        'Política'
+      )}
+
+      ${renderMetric(
+        'Aceptadas',
+        fmtNum(data.total_accepted),
+        'Para Guardian'
+      )}
+
+      ${renderMetric(
+        'Analizadas',
+        fmtNum(data.total_analyzed),
+        'Guardian'
+      )}
+
+      ${renderMetric(
+        'Consultas históricas',
+        fmtNum(data.history_query_count),
+        'Athena'
+      )}
+
+    </div>
+  `;
+}
+
+
+function renderLiveAlerts(alerts) {
+  if (!alerts.length) {
+    return `
+      <div class="card">
+        <div class="empty-state">
+          <div class="icon">✓</div>
+          <h3>Sin alertas</h3>
+          <p>No se encontraron alertas aceptadas para esta fecha.</p>
+        </div>
+      </div>
+    `;
+  }
+
+  return alerts.map((alert, index) => {
+    const guardian = alert.guardian_analysis;
+
+    const conclusions = guardian?.conclusions;
+    const verdict =
+      conclusions?.verdict ||
+      'requires_review';
+
+    const verdictConfig = {
+      confirmed: {
+        icon: '🔴',
+        label: 'Confirmada',
+        css: 'confirmed',
+      },
+      not_supported: {
+        icon: '🟢',
+        label: 'No soportada',
+        css: 'not_supported',
+      },
+      requires_review: {
+        icon: '🟡',
+        label: 'Requiere revisión',
+        css: 'requires_review',
+      },
+    };
+
+    const vc =
+      verdictConfig[verdict] ||
+      verdictConfig.requires_review;
+
+    const analysisStatus =
+      guardian?.analysis_status || 'not_requested';
+
+    const historyStatus =
+      guardian?.history_status || 'not_requested';
+
+    return `
+      <div class="card mb-6">
+
+        <div class="card-header">
+
+          <div>
+            <h3>
+              ${vc.icon}
+              ${alert.merchant_name || alert.merchant_code || 'Comercio'}
+            </h3>
+
+            <div
+              style="
+                font-size:11px;
+                color:var(--text-muted);
+                margin-top:4px;
+              "
+            >
+              MID: ${alert.merchant_code || '—'}
+              · Alert ID: ${alert.alert_id || '—'}
+            </div>
+          </div>
+
+          <span class="verdict-badge ${vc.css}">
+            ${vc.label}
+          </span>
+
+        </div>
+
+        <div class="card-body">
+
+          <div class="metrics-grid">
+
+            ${renderMetric(
+              'Aceptación',
+              fmtRate(alert.approval_rate),
+              'Alerta'
+            )}
+
+            ${renderMetric(
+              'Baseline',
+              fmtRate(alert.rolling_avg_approval_rate),
+              'Kipu'
+            )}
+
+            ${renderMetric(
+              'Transacciones',
+              fmtNum(alert.total_transactions),
+              'Total'
+            )}
+
+            ${renderMetric(
+              'Rechazos',
+              fmtNum(alert.declined_count),
+              'Declinadas'
+            )}
+
+          </div>
+
+          <div
+            style="
+              display:flex;
+              gap:8px;
+              flex-wrap:wrap;
+              margin-top:16px;
+            "
+          >
+
+            <span class="signal-pill">
+              Histórico: ${historyStatus}
+            </span>
+
+            <span class="signal-pill">
+              Análisis: ${analysisStatus}
+            </span>
+
+          </div>
+
+          ${
+            conclusions?.summary
+              ? `
+                <div style="margin-top:18px">
+                  <div class="section-title">
+                    Conclusión Guardian
+                  </div>
+
+                  <p
+                    style="
+                      font-size:14px;
+                      line-height:1.7;
+                      color:var(--text-primary);
+                    "
+                  >
+                    ${conclusions.summary}
+                  </p>
+                </div>
+              `
+              : ''
+          }
+
+          ${
+            guardian?.analysis_error
+              ? `
+                <div style="margin-top:16px">
+                  ${renderError(
+                    guardian.analysis_error.message ||
+                    guardian.analysis_error.code
+                  )}
+                </div>
+              `
+              : ''
+          }
+
+          <details style="margin-top:18px">
+
+            <summary
+              style="
+                cursor:pointer;
+                color:var(--text-secondary);
+              "
+            >
+              Ver análisis completo
+            </summary>
+
+            <div
+              class="json-viewer"
+              style="margin-top:12px"
+            >
+              ${syntaxHighlight(
+                JSON.stringify(guardian, null, 2)
+              )}
+            </div>
+
+          </details>
+
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 // ── Analysis ────────────────────────────────────────────────────────
