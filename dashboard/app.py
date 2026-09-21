@@ -256,13 +256,8 @@ async def today_date():
 
 @app.post("/api/live-alerts")
 async def fetch_live_alerts(request: Request):
-    """Fetch alerts for a given date from the real AWS environment.
+    """Extrae alertas reales de Kipu y las analiza con Guardian."""
 
-    Expects JSON: { "date": "2026-09-21", "mode": "policy" }
-    mode can be "policy" (deterministic only) or "ai" (with AI review).
-
-    Requires AWS SSO authentication with profile ia-dev-payments-intelligence.
-    """
     try:
         body = await request.json()
     except Exception:
@@ -275,30 +270,84 @@ async def fetch_live_alerts(request: Request):
         raise HTTPException(400, "Missing 'date' field")
 
     try:
-        from alert_reviewer.guardian_daily import DailyReviewError, GuardianDailyReview
+        from alert_reviewer.guardian_daily import GuardianDailyReview
 
+        # 1. Mantener la extracción existente.
         review = GuardianDailyReview()
         snapshot = review.run(day, mode)
 
         alerts = snapshot.get("accepted_alerts", [])
+
+        # 2. Analizar las alertas extraídas con el Guardian actual.
+        #
+        # GuardianAgent.configured() crea automáticamente:
+        # - la política actual
+        # - AthenaHistoryReader
+        # - Gemini, si GEMINI_API_KEY está configurada
+        guardian = GuardianAgent.configured()
+
+        # Guardian admite máximo 50 alertas por llamada y por defecto
+        # limita las consultas históricas a 5.
+        guardian_result = guardian.review_alerts(
+            alerts[:50],
+            with_history=True,
+            lookback_days=7,
+            max_history_queries=5,
+            history_timestamp_field="timestamp",
+        )
+
+        # 3. Indexar los análisis por alert_id para unirlos
+        #    con las alertas originales.
+        reviews_by_id = {
+            item.get("alert_id"): item
+            for item in guardian_result.get("reviews", [])
+            if item.get("alert_id")
+        }
+
+        analyzed_alerts = []
+
+        for alert in alerts:
+            alert_id = alert.get("alert_id")
+            analysis = reviews_by_id.get(alert_id)
+
+            analyzed_alerts.append({
+                **alert,
+                "guardian_analysis": analysis,
+            })
+
+        # 4. Devolver extracción + análisis.
         return JSONResponse({
             "status": "completed",
             "business_date": snapshot.get("business_date"),
             "source": snapshot.get("source"),
             "review_mode": snapshot.get("review_mode"),
-            "policy_version": snapshot.get("policy_version"),
+            "policy_version": guardian_result.get(
+                "policy_version",
+                snapshot.get("policy_version"),
+            ),
             "total_received": snapshot.get("source_record_count", 0),
             "total_evaluated": snapshot.get("evaluated_record_count", 0),
             "total_accepted": len(alerts),
+            "total_analyzed": len(guardian_result.get("reviews", [])),
+            "history_query_count": guardian_result.get(
+                "history_query_count",
+                0,
+            ),
             "country_summary": snapshot.get("country_summary", []),
-            "alerts": alerts,
+            "alerts": analyzed_alerts,
         })
+
     except Exception as e:
+        logger.exception("Live alert analysis failed")
+
         code = getattr(e, "code", "UNKNOWN_ERROR")
         msg = str(e)
-        # Map known error codes to user-friendly messages
+
         if "SSO" in code or "Token" in str(type(e)):
-            msg = "Sesión AWS expirada. Ejecuta: aws sso login --profile ia-dev-payments-intelligence"
+            msg = (
+                "Sesión AWS expirada. Ejecuta: "
+                "aws sso login --profile ia-dev-payments-intelligence"
+            )
         elif "ACCESS_DENIED" in code:
             msg = "Sin acceso al archivo de alertas. Verifica permisos AWS."
         elif "SNAPSHOT_NOT_FOUND" in code:
@@ -306,11 +355,14 @@ async def fetch_live_alerts(request: Request):
         elif "FUTURE_DATE" in code:
             msg = "Selecciona hoy o una fecha anterior."
 
-        return JSONResponse({
-            "status": "error",
-            "code": code,
-            "message": msg,
-        }, status_code=422)
+        return JSONResponse(
+            {
+                "status": "error",
+                "code": code,
+                "message": msg,
+            },
+            status_code=422,
+        )
 
 
 # ── Helpers ──────────────────────────────────────────────────────────
