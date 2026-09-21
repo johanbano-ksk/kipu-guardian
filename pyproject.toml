@@ -23,6 +23,10 @@ dev = [
     "pytest-asyncio>=1.0,<2",
     "ruff>=0.12,<1",
 ]
+dashboard = [
+    "fastapi>=0.115,<1",
+    "uvicorn[standard]>=0.34,<1",
+]
 
 [project.scripts]
 alert-reviewer-worker = "alert_reviewer.worker:run"

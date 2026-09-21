@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Kushki Guardian — Dashboard de revisión de alertas con veredictos determinísticos">
+  <title>Kushki Guardian</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="/" class="brand">
+          <div class="brand-icon">K</div>
+          <div class="brand-text">
+            <h1>Kushki</h1>
+            <span>Guardian</span>
+          </div>
+        </a>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-label">Análisis</div>
+          <button class="nav-item active" data-page="analyze" id="nav-analyze">
+            <span class="icon">🔍</span> Analizar Alerta
+          </button>
+          <button class="nav-item" data-page="examples" id="nav-examples">
+            <span class="icon">📋</span> Alertas de Ejemplo
+          </button>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-label">Informes</div>
+          <button class="nav-item" data-page="reports" id="nav-reports">
+            <span class="icon">📊</span> Reportes Guardados
+          </button>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-label">Sistema</div>
+          <button class="nav-item" data-page="thresholds" id="nav-thresholds">
+            <span class="icon">⚙️</span> Umbrales y Config
+          </button>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="status-indicator">
+          <div class="status-dot" id="status-dot"></div>
+          <span id="status-text">Conectando...</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Analyze Page -->
+      <div class="page" id="page-analyze">
+        <div class="page-header">
+          <h2>🔍 Analizar Alerta</h2>
+          <p>Procesa una alerta Kipu con el evaluador determinístico</p>
+        </div>
+        <div class="page-body">
+          <!-- Upload Zone -->
+          <div class="card mb-6">
+            <div class="card-header">
+              <h3>📄 Cargar Alerta JSON</h3>
+              <button class="btn btn-sm btn-secondary" id="btn-paste-example">Pegar ejemplo</button>
+            </div>
+            <div class="card-body">
+              <div class="upload-zone" id="upload-zone">
+                <div class="icon">📁</div>
+                <h4>Arrastra un archivo JSON o haz clic aquí</h4>
+                <p>Acepta envelopes EventBridge o payloads de alerta schema_version 1.0</p>
+                <input type="file" id="file-input" accept=".json" style="display:none">
+              </div>
+              <div class="mt-4">
+                <textarea class="json-input" id="json-input" placeholder='Pega aquí el JSON de la alerta...'></textarea>
+              </div>
+              <div class="flex items-center gap-3 mt-3">
+                <button class="btn btn-primary" id="btn-analyze" disabled>
+                  🚀 Analizar
+                </button>
+                <button class="btn btn-secondary" id="btn-clear">Limpiar</button>
+                <span class="text-muted" id="input-status" style="font-size:12px; color:var(--text-muted)"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Results -->
+          <div id="analysis-result" class="hidden"></div>
+        </div>
+      </div>
+
+      <!-- Examples Page -->
+      <div class="page hidden" id="page-examples">
+        <div class="page-header">
+          <h2>📋 Alertas de Ejemplo</h2>
+          <p>Carga una alerta de ejemplo para probar el evaluador</p>
+        </div>
+        <div class="page-body">
+          <div class="card">
+            <div class="card-body">
+              <div id="examples-list" class="example-list">
+                <div class="loading-overlay">
+                  <div class="loading-spinner"></div>
+                  Cargando ejemplos...
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reports Page -->
+      <div class="page hidden" id="page-reports">
+        <div class="page-header">
+          <h2>📊 Reportes Guardados</h2>
+          <p>Evidencia histórica de Guardian almacenada localmente</p>
+        </div>
+        <div class="page-body">
+          <div class="card">
+            <div class="card-body" id="reports-content">
+              <div class="loading-overlay">
+                <div class="loading-spinner"></div>
+                Cargando reportes...
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thresholds Page -->
+      <div class="page hidden" id="page-thresholds">
+        <div class="page-header">
+          <h2>⚙️ Umbrales y Configuración</h2>
+          <p>Parámetros del evaluador determinístico</p>
+        </div>
+        <div class="page-body" id="thresholds-content">
+          <div class="loading-overlay">
+            <div class="loading-spinner"></div>
+            Cargando configuración...
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
