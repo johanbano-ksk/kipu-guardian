@@ -292,7 +292,7 @@ async def fetch_live_alerts(request: Request):
             alerts[:50],
             with_history=True,
             lookback_days=7,
-            max_history_queries=5,
+            max_history_queries=20,
             history_timestamp_field="timestamp",
         )
 
@@ -328,7 +328,21 @@ async def fetch_live_alerts(request: Request):
             "total_received": snapshot.get("source_record_count", 0),
             "total_evaluated": snapshot.get("evaluated_record_count", 0),
             "total_accepted": len(alerts),
-            "total_analyzed": len(guardian_result.get("reviews", [])),
+            "total_analyzed": sum(
+                1
+                for item in guardian_result.get("reviews", [])
+                if item.get("analysis_status") == "completed"
+            ),
+            "total_with_history": sum(
+                1
+                for item in guardian_result.get("reviews", [])
+                if item.get("history_status") == "completed"
+            ),
+            "total_analysis_skipped": sum(
+                1
+                for item in guardian_result.get("reviews", [])
+                if item.get("analysis_status") in {"skipped", "unavailable"}
+            ),
             "history_query_count": guardian_result.get(
                 "history_query_count",
                 0,
@@ -363,7 +377,6 @@ async def fetch_live_alerts(request: Request):
             },
             status_code=422,
         )
-##TODO: REVISAR QUE SE EXTRAEN SOLO LOTES DE 50 MAX Y LOS DEMÁS DAN NULL
 
 # ── Helpers ──────────────────────────────────────────────────────────
 

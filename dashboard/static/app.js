@@ -78,7 +78,7 @@ async function loadLiveAlerts() {
       return;
     }
 
-    status.textContent = `${data.total_accepted} alertas aceptadas · ${data.total_analyzed} analizadas`;
+    status.textContent = `${data.total_accepted} aceptadas · ${data.total_with_history} con histórico · ${data.total_analyzed} analizadas completas`;
     summary.innerHTML = renderLiveSummary(data);
     container.innerHTML = renderLiveAlerts(data.alerts || []);
   } catch (error) {
@@ -96,8 +96,8 @@ function renderLiveSummary(data) {
     ${renderSummaryCard('Recibidas', data.total_received, 'Eventos Kipu', 'neutral')}
     ${renderSummaryCard('Evaluadas', data.total_evaluated, 'Política activa', 'blue')}
     ${renderSummaryCard('Aceptadas', data.total_accepted, 'Enviadas a Guardian', 'green')}
-    ${renderSummaryCard('Analizadas', data.total_analyzed, 'Con histórico', 'purple')}
-    ${renderSummaryCard('Consultas', data.history_query_count, 'Athena', 'amber')}
+    ${renderSummaryCard('Con histórico', data.total_with_history, 'Evidencia disponible', 'purple')}
+    ${renderSummaryCard('Analizadas', data.total_analyzed, data.total_analysis_skipped ? `${data.total_analysis_skipped} sin completar` : 'Completas', 'amber')}
   </div>`;
 }
 
