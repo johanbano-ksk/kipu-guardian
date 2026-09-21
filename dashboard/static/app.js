@@ -135,8 +135,8 @@ function renderLiveAlerts(alerts) {
         </div>
         <div class="guardian-panel">
           <div class="guardian-panel-header"><div><span class="eyebrow">Guardian assessment</span><h4>Conclusión</h4></div><div class="status-chips">${renderStatusChip('Histórico', guardian.history_status)}${renderStatusChip('Análisis', guardian.analysis_status)}</div></div>
-          <p>${escapeHtml(summary)}</p>
-          ${renderFindings(conclusions.findings || [])}
+          <p class="guardian-summary">${escapeHtml(summary)}</p>
+          ${renderAiResponse(conclusions)}
         </div>
         <details class="technical-details">
           <summary>Ver detalle técnico</summary>
@@ -162,6 +162,63 @@ function renderStatusChip(label, status) {
   const cls = value === 'completed' ? 'ok' : value === 'unavailable' || value === 'skipped' ? 'warn' : 'neutral';
   const translated = { completed: 'Completo', unavailable: 'No disponible', skipped: 'Omitido', no_data: 'Sin datos', not_requested: 'Pendiente' }[value] || value;
   return `<span class="status-chip ${cls}">${escapeHtml(label)} · ${escapeHtml(translated)}</span>`;
+}
+
+function renderAiResponse(conclusions) {
+  if (!conclusions || !Object.keys(conclusions).length) return '';
+
+  const findings = Array.isArray(conclusions.findings) ? conclusions.findings : [];
+  const limitations = Array.isArray(conclusions.limitations) ? conclusions.limitations : [];
+  const nextSteps = Array.isArray(conclusions.next_steps) ? conclusions.next_steps : [];
+
+  return `<div class="ai-response-grid">
+    ${findings.length ? renderAiSection(
+      'Hallazgos relevantes',
+      'Lo que sustenta la evaluación',
+      findings.slice(0, 3).map((finding) => ({
+        text: finding.observation || '',
+        evidence: finding.evidence_ids || [],
+      })),
+      'finding'
+    ) : ''}
+    ${limitations.length ? renderAiSection(
+      'Limitaciones',
+      'Qué no puede concluirse con esta evidencia',
+      limitations.slice(0, 3).map((text) => ({ text })),
+      'limitation'
+    ) : ''}
+    ${nextSteps.length ? renderAiSection(
+      'Siguiente acción',
+      'Paso recomendado para cerrar la revisión',
+      nextSteps.slice(0, 1).map((text) => ({ text })),
+      'action'
+    ) : ''}
+  </div>`;
+}
+
+function renderAiSection(title, subtitle, items, type) {
+  const icons = { finding: '↳', limitation: '!', action: '→' };
+  return `<section class="ai-section ${type}">
+    <div class="ai-section-header">
+      <div><h5>${escapeHtml(title)}</h5><span>${escapeHtml(subtitle)}</span></div>
+    </div>
+    <div class="ai-section-items">
+      ${items.map((item) => `<div class="ai-item">
+        <span class="ai-item-icon">${icons[type] || '•'}</span>
+        <div class="ai-item-content">
+          <p>${escapeHtml(item.text || '')}</p>
+          ${item.evidence?.length ? `<div class="evidence-list">${item.evidence.map((id) => `<span>${escapeHtml(formatEvidenceId(id))}</span>`).join('')}</div>` : ''}
+        </div>
+      </div>`).join('')}
+    </div>
+  </section>`;
+}
+
+function formatEvidenceId(id) {
+  if (id === 'alert_0') return 'Alerta Kipu';
+  if (id === 'quality_0') return 'Calidad de datos';
+  if (/^day_\d+$/.test(id)) return `Histórico · día ${Number(id.split('_')[1]) + 1}`;
+  return id;
 }
 
 function renderFindings(findings) {
