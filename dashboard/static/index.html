@@ -3,198 +3,51 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Kushki Guardian — Dashboard de revisión de alertas con veredictos determinísticos">
+  <meta name="description" content="Kushki Guardian — Monitoreo inteligente de alertas Kipu">
   <title>Kushki Guardian</title>
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-  <div class="app-container">
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-header">
-        <a href="/" class="brand">
-          <div class="brand-icon">K</div>
-          <div class="brand-text">
-            <h1>Kushki</h1>
-            <span>Guardian</span>
-          </div>
-        </a>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand-block">
+        <div class="brand-mark">K</div>
+        <div><div class="brand-name">Kushki</div><div class="brand-product">Guardian</div></div>
       </div>
-
       <nav class="sidebar-nav">
-        <div class="nav-section">
-          <div class="nav-section-label">Análisis</div>
-          <button class="nav-item" data-page="live" id="nav-live">
-            <span class="icon">⚡</span> Alertas Kipu
-          </button>
-          <button class="nav-item active" data-page="analyze" id="nav-analyze">
-            <span class="icon">🔍</span> Analizar Alerta
-          </button>
-          <button class="nav-item" data-page="examples" id="nav-examples">
-            <span class="icon">📋</span> Alertas de Ejemplo
-          </button>
-        </div>
-
-        <div class="nav-section">
-          <div class="nav-section-label">Informes</div>
-          <button class="nav-item" data-page="reports" id="nav-reports">
-            <span class="icon">📊</span> Reportes Guardados
-          </button>
-        </div>
-
-        <div class="nav-section">
-          <div class="nav-section-label">Sistema</div>
-          <button class="nav-item" data-page="thresholds" id="nav-thresholds">
-            <span class="icon">⚙️</span> Umbrales y Config
-          </button>
-        </div>
+        <div class="nav-label">Monitoreo</div>
+        <button class="nav-item active" data-page="live" id="nav-live"><span class="nav-icon">⌁</span><span>Alertas Kipu</span></button>
+        <div class="nav-label nav-label-spaced">Sistema</div>
+        <button class="nav-item" data-page="thresholds" id="nav-thresholds"><span class="nav-icon">⚙</span><span>Configuración</span></button>
       </nav>
-
-      <div class="sidebar-footer">
-        <div class="status-indicator">
-          <div class="status-dot" id="status-dot"></div>
-          <span id="status-text">Conectando...</span>
-        </div>
-      </div>
+      <div class="sidebar-footer"><div class="system-status"><span class="status-dot" id="status-dot"></span><div><strong id="status-text">Conectando...</strong><span>Guardian API</span></div></div></div>
     </aside>
-
-    <!-- Main Content -->
     <main class="main-content">
-      <!-- Live Kipu Alerts Page -->
-  <div class="page hidden" id="page-live">
-    <div class="page-header">
-      <h2>⚡ Alertas Kipu</h2>
-      <p>Alertas reales extraídas desde AWS y analizadas por Guardian</p>
-    </div>
-
-    <div class="page-body">
-
-      <div class="card mb-6">
-        <div class="card-header">
-          <h3>Consultar alertas</h3>
-        </div>
-
-        <div class="card-body">
-          <div class="flex items-center gap-3">
-
-            <input
-              type="date"
-              id="live-date"
-              class="json-input"
-              style="height:42px; width:auto;"
-            >
-
-            <button class="btn btn-primary" id="btn-live-alerts">
-              ⚡ Obtener y analizar
-            </button>
-
-            <span
-              id="live-status"
-              style="font-size:12px; color:var(--text-muted)"
-            ></span>
-
-          </div>
-        </div>
-      </div>
-
-      <div id="live-summary"></div>
-
-      <div id="live-alerts"></div>
-
-    </div>
-  </div>
-      <!-- Analyze Page -->
-      <div class="page" id="page-analyze">
-        <div class="page-header">
-          <h2>🔍 Analizar Alerta</h2>
-          <p>Procesa una alerta Kipu con el evaluador determinístico</p>
-        </div>
-        <div class="page-body">
-          <!-- Upload Zone -->
-          <div class="card mb-6">
-            <div class="card-header">
-              <h3>📄 Cargar Alerta JSON</h3>
-              <button class="btn btn-sm btn-secondary" id="btn-paste-example">Pegar ejemplo</button>
+      <section class="page" id="page-live">
+        <header class="topbar">
+          <div><div class="eyebrow">Payments Intelligence</div><h1>Guardian</h1><p>Monitoreo y análisis de alertas Kipu con contexto histórico.</p></div>
+          <div class="topbar-badge"><span></span> Entorno AWS</div>
+        </header>
+        <div class="content">
+          <section class="hero-panel">
+            <div class="hero-copy"><span class="hero-kicker">KIPU ALERT MONITOR</span><h2>Revisa señales críticas con contexto, no sólo con volumen.</h2><p>Extrae las alertas del día, aplica la política vigente y enriquece cada caso con histórico y análisis Guardian.</p></div>
+            <div class="query-panel">
+              <label for="live-date">Fecha de publicación</label>
+              <div class="query-controls"><input type="date" id="live-date" class="date-input"><button class="btn btn-primary" id="btn-live-alerts"><span>Consultar alertas</span><span class="btn-arrow">→</span></button></div>
+              <div id="live-status" class="query-status">Selecciona una fecha para comenzar.</div>
             </div>
-            <div class="card-body">
-              <div class="upload-zone" id="upload-zone">
-                <div class="icon">📁</div>
-                <h4>Arrastra un archivo JSON o haz clic aquí</h4>
-                <p>Acepta envelopes EventBridge o payloads de alerta schema_version 1.0</p>
-                <input type="file" id="file-input" accept=".json" style="display:none">
-              </div>
-              <div class="mt-4">
-                <textarea class="json-input" id="json-input" placeholder='Pega aquí el JSON de la alerta...'></textarea>
-              </div>
-              <div class="flex items-center gap-3 mt-3">
-                <button class="btn btn-primary" id="btn-analyze" disabled>
-                  🚀 Analizar
-                </button>
-                <button class="btn btn-secondary" id="btn-clear">Limpiar</button>
-                <span class="text-muted" id="input-status" style="font-size:12px; color:var(--text-muted)"></span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Results -->
-          <div id="analysis-result" class="hidden"></div>
+          </section>
+          <section id="live-summary"></section>
+          <section class="section-heading"><div><span class="eyebrow">Resultados</span><h2>Alertas analizadas</h2></div><span class="section-note">Kipu → Guardian → Histórico</span></section>
+          <section id="live-alerts" class="alerts-list"><div class="empty-state compact"><div class="empty-icon">⌁</div><h3>Sin consulta activa</h3><p>Selecciona una fecha para cargar las alertas reales de Kipu.</p></div></section>
         </div>
-      </div>
-
-      <!-- Examples Page -->
-      <div class="page hidden" id="page-examples">
-        <div class="page-header">
-          <h2>📋 Alertas de Ejemplo</h2>
-          <p>Carga una alerta de ejemplo para probar el evaluador</p>
-        </div>
-        <div class="page-body">
-          <div class="card">
-            <div class="card-body">
-              <div id="examples-list" class="example-list">
-                <div class="loading-overlay">
-                  <div class="loading-spinner"></div>
-                  Cargando ejemplos...
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Reports Page -->
-      <div class="page hidden" id="page-reports">
-        <div class="page-header">
-          <h2>📊 Reportes Guardados</h2>
-          <p>Evidencia histórica de Guardian almacenada localmente</p>
-        </div>
-        <div class="page-body">
-          <div class="card">
-            <div class="card-body" id="reports-content">
-              <div class="loading-overlay">
-                <div class="loading-spinner"></div>
-                Cargando reportes...
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Thresholds Page -->
-      <div class="page hidden" id="page-thresholds">
-        <div class="page-header">
-          <h2>⚙️ Umbrales y Configuración</h2>
-          <p>Parámetros del evaluador determinístico</p>
-        </div>
-        <div class="page-body" id="thresholds-content">
-          <div class="loading-overlay">
-            <div class="loading-spinner"></div>
-            Cargando configuración...
-          </div>
-        </div>
-      </div>
+      </section>
+      <section class="page hidden" id="page-thresholds">
+        <header class="topbar"><div><div class="eyebrow">Guardian</div><h1>Configuración</h1><p>Estado del analizador y parámetros determinísticos activos.</p></div></header>
+        <div class="content" id="thresholds-content"></div>
+      </section>
     </main>
   </div>
-
   <script src="/static/app.js"></script>
 </body>
 </html>
