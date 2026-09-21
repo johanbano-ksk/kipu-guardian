@@ -9,3 +9,24 @@
 .empty-state,.loading-state{padding:54px 28px;border:1px dashed #ced8df;border-radius:var(--radius);background:rgba(255,255,255,.6);text-align:center}.empty-state.compact{padding:46px 28px}.empty-icon{width:44px;height:44px;margin:0 auto 12px;display:grid;place-items:center;border-radius:13px;background:#eaf0f4;color:var(--kushki-navy);font-size:20px;font-weight:800}.empty-icon.success{background:var(--success-bg);color:var(--success)}.empty-state h3,.loading-state h3{font-size:14px}.empty-state p,.loading-state p{max-width:470px;margin:6px auto 0;color:var(--muted);font-size:11px}.error-state{display:flex;align-items:center;gap:14px;padding:20px;border:1px solid #ffd2ce;border-radius:14px;background:var(--danger-bg)}.error-icon{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:var(--danger);color:#fff;font-weight:800}.error-state h3{color:var(--danger);font-size:12px}.error-state p{margin-top:3px;color:#7a514d;font-size:10px}.spinner{width:14px;height:14px;display:inline-block;border:2px solid rgba(0,43,73,.2);border-top-color:var(--kushki-navy);border-radius:50%;animation:spin .7s linear infinite}.spinner.large{width:26px;height:26px;margin-bottom:10px;border-width:3px;border-color:#d6e0e6;border-top-color:var(--kushki-green)}@keyframes spin{to{transform:rotate(360deg)}}
 .settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.settings-card{padding:22px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}.settings-card h3{margin:5px 0 18px;font-size:17px}.setting-row{display:flex;justify-content:space-between;gap:20px;padding:13px 0;border-top:1px solid var(--line);color:var(--muted);font-size:11px}.setting-row strong{color:var(--text)}.hidden{display:none!important}
 @media(max-width:1100px){.hero-panel{grid-template-columns:1fr}.summary-grid{grid-template-columns:repeat(3,1fr)}.alert-metrics{grid-template-columns:repeat(3,1fr)}}@media(max-width:760px){.sidebar{position:static;width:100%}.main-content{margin-left:0}.sidebar-nav{display:flex;gap:8px}.nav-label,.sidebar-footer{display:none}.brand-block{padding-bottom:14px}.topbar,.content{padding-left:18px;padding-right:18px}.topbar-badge{display:none}.hero-panel{padding:24px}.query-controls{flex-direction:column}.summary-grid,.alert-metrics{grid-template-columns:repeat(2,1fr)}.alert-header,.guardian-panel-header{align-items:flex-start;flex-direction:column}.technical-grid,.settings-grid{grid-template-columns:1fr}}
+/* Structured Guardian AI response */
+.guardian-summary{font-size:13px!important;line-height:1.75!important;color:#334e61!important}
+.ai-response-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.ai-section{border:1px solid #e4ebe7;border-radius:12px;background:#fff;overflow:hidden}
+.ai-section.finding{grid-column:1/-1}
+.ai-section.action{border-color:#ccefdc;background:#f8fffb}
+.ai-section.limitation{border-color:#f2e3bd;background:#fffdf7}
+.ai-section-header{padding:11px 13px;border-bottom:1px solid rgba(16,34,53,.06)}
+.ai-section-header h5{font-size:11px;color:#1d3749}
+.ai-section-header span{display:block;margin-top:2px;color:#82929f;font-size:9px}
+.ai-section-items{display:grid}
+.ai-item{display:flex;gap:9px;padding:11px 13px;border-top:1px solid rgba(16,34,53,.05)}
+.ai-item:first-child{border-top:0}
+.ai-item-icon{width:21px;height:21px;flex:0 0 auto;display:grid;place-items:center;border-radius:7px;background:#eaf8f0;color:#087a46;font-size:11px;font-weight:800}
+.ai-section.limitation .ai-item-icon{background:#fff2d6;color:#a86400}
+.ai-section.action .ai-item-icon{background:#dff9eb;color:#087a46}
+.ai-item-content{min-width:0}
+.ai-item-content p{margin:0!important;color:#42586a!important;font-size:10.5px!important;line-height:1.55!important}
+.evidence-list{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}
+.evidence-list span{padding:3px 6px;border-radius:999px;background:#eef4f7;color:#637989;font-size:8px;font-weight:700}
+@media(max-width:760px){.ai-response-grid{grid-template-columns:1fr}.ai-section.finding{grid-column:auto}}
