@@ -235,13 +235,13 @@ def test_anonymous_payload_never_forwards_identifiers_dates_or_free_text(monkeyp
 
 
 @pytest.mark.parametrize("verdict", ["confirmed", "not_supported"])
-def test_definitive_verdict_rejected_locally_even_with_valid_schema_fields_and_citations(
+def test_definitive_verdict_accepted_locally_with_valid_schema_fields_and_citations(
     monkeypatch, verdict
 ):
-    _provider(monkeypatch, _analysis(verdict=verdict))
+    captured = _provider(monkeypatch, _analysis(verdict=verdict))
     alert, history = _alert(), _history()
-    with pytest.raises(GeminiReviewError, match="AI_INVALID_ANALYSIS"):
-        _analyst().analyze(alert, history, True, build_comparison_context(alert, history))
+    result = _analyst().analyze(alert, history, True, build_comparison_context(alert, history))
+    assert result == _analysis(verdict=verdict)
 
 
 @pytest.mark.parametrize(
