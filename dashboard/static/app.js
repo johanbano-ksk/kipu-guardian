@@ -113,11 +113,11 @@ function renderLiveAlerts(alerts) {
   return alerts.map((alert) => {
     const guardian = alert.guardian_analysis || {};
     const conclusions = guardian.conclusions || {};
-    const verdict = conclusions.verdict || 'requires_review';
+    const verdict = conclusions.verdict || (guardian.analysis_status === 'no_data' ? 'no_data' : 'requires_review');
     const config = verdictConfig(verdict);
     const history = guardian.history || {};
     const historyMetrics = history.metrics || {};
-    const summary = conclusions.summary || (guardian.analysis_error ? 'La revisión determinística está disponible, pero la explicación con IA no pudo generarse.' : 'Guardian no generó una conclusión para esta alerta.');
+    const summary = conclusions.summary || (guardian.analysis_status === 'no_data' ? 'No hay datos históricos elegibles suficientes para evaluar la tasa de aceptación.' : guardian.analysis_error ? 'La revisión determinística está disponible, pero la explicación con IA no pudo generarse.' : 'Guardian no generó una conclusión para esta alerta.');
 
     return `<article class="alert-card">
       <div class="alert-accent ${config.css}"></div>
@@ -230,7 +230,7 @@ function renderFindings(findings) {
 function verdictConfig(verdict) {
   return {
     confirmed: { label: 'Confirmada', css: 'danger' },
-    not_supported: { label: 'No soportada', css: 'success' },
+    no_data: { label: 'Sin datos', css: 'neutral' },
     requires_review: { label: 'Requiere revisión', css: 'warning' },
   }[verdict] || { label: 'Requiere revisión', css: 'warning' };
 }

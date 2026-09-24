@@ -131,7 +131,7 @@ def build_comparison_context(alert: Any, history: Any) -> dict[str, Any]:
         "alert_window": None,
         "history_range": {"date_from": start, "date_to": end, "timezone": TIMEZONE},
         "reasons": list(_COMPARISON_REASONS),
-        "allowed_verdicts": ["confirmed", "not_supported", "requires_review"],
+        "allowed_verdicts": ["confirmed", "no_data", "requires_review"],
     }
 
 

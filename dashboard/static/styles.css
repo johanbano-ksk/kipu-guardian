@@ -31,6 +31,10 @@
 .evidence-list span{padding:3px 6px;border-radius:999px;background:#eef4f7;color:#637989;font-size:8px;font-weight:700}
 @media(max-width:760px){.ai-response-grid{grid-template-columns:1fr}.ai-section.finding{grid-column:auto}}
 
+/* Three-category verdict palette */
+.alert-accent.neutral{background:#778897}
+.verdict-pill.neutral{background:#eef2f5;color:#6d7d8a}
+
 /* Kushki visual refresh */
 :root{
   --kushki-navy:#003b5c;

@@ -349,11 +349,13 @@ def test_provider_error_is_propagated_without_turning_it_into_a_decision(monkeyp
         _analyst().analyze(_alert(), _history(), True)
 
 
-@pytest.mark.parametrize("verdict", ["confirmed", "not_supported", "requires_review"])
+@pytest.mark.parametrize("verdict", ["confirmed", "no_data", "requires_review"])
 @pytest.mark.parametrize("accepted", [True, False])
 def test_verdict_is_separate_from_deterministic_acceptance(monkeypatch, verdict, accepted):
     analysis = _analysis()
     analysis["verdict"] = verdict
+    if verdict == "no_data":
+        analysis["verdict_evidence_ids"] = ["alert_0", "quality_0"]
     captured = _mock_response(monkeypatch, analysis)
 
     assert _analyst().analyze(_alert(), _history(), accepted) == analysis
@@ -409,7 +411,7 @@ def test_verdict_requires_its_own_valid_alert_and_history_citations(monkeypatch,
         _analyst().analyze(_alert(), _history(), True)
 
 
-@pytest.mark.parametrize("verdict", ["confirmed", "not_supported"])
+@pytest.mark.parametrize("verdict", ["confirmed"])
 @pytest.mark.parametrize("historical_id", ["quality_0", "comparison_0"])
 def test_definitive_verdict_cannot_cite_only_coverage_or_comparison(
     monkeypatch, verdict, historical_id
@@ -474,9 +476,7 @@ def test_prompt_scopes_verdict_and_does_not_dismiss_alert_from_normal_history(mo
 
     assert "no una confirmación de incidente o causa" in instructions
     assert "No copies policy_accepted como dictamen" in instructions
-    assert "No significa falso positivo probado" in instructions
-    assert "Un histórico normal, una tasa histórica mayor" in instructions
-    assert "NUNCA permiten descartar la alerta" in instructions
+    assert "No significa que la alerta haya sido descartada ni confirmada" in instructions
     assert "no una consulta de la ventana del incidente" in instructions
     assert "Null significa desconocido, nunca cero" in instructions
     assert "suma de aprobadas / suma de transacciones, nunca la media" in instructions
@@ -495,7 +495,7 @@ def test_guardian_schema_keeps_independent_list_bounds_and_history_schema_unchan
 
     assert schema["properties"]["verdict"]["enum"] == [
         "confirmed",
-        "not_supported",
+        "no_data",
         "requires_review",
     ]
     assert {"verdict", "verdict_evidence_ids"}.issubset(schema["required"])

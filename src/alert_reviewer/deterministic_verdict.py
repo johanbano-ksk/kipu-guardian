@@ -23,7 +23,7 @@ TREND_DECLINE_THRESHOLD_PP = 5  # negative change in historical comparison
 class DeterministicVerdict:
     """Result of the deterministic rule evaluation."""
 
-    verdict: str  # "confirmed" | "not_supported" | "requires_review"
+    verdict: str  # "confirmed" | "no_data" | "requires_review"
     decision_reason: str
     signals: tuple[str, ...]
     evidence_summary: dict[str, Any]
@@ -57,6 +57,16 @@ def evaluate_verdict(
     observed_days = _safe_int(data_quality.get("observed_days"))
     total_hist_trx = _safe_int(data_quality.get("total_transactions"))
 
+    if observed_days == 0 or total_hist_trx == 0:
+        return DeterministicVerdict(
+            verdict="no_data",
+            decision_reason="no_historical_data",
+            signals=(),
+            evidence_summary=_build_summary(
+                alert_evidence, period, data_quality, comparison
+            ),
+        )
+
     if observed_days < MIN_OBSERVED_DAYS or total_hist_trx < MIN_TOTAL_TRANSACTIONS:
         return DeterministicVerdict(
             verdict="requires_review",
@@ -84,7 +94,7 @@ def evaluate_verdict(
 
     if hist_rate_pct is None:
         return DeterministicVerdict(
-            verdict="requires_review",
+            verdict="no_data",
             decision_reason="missing_historical_approval_rate",
             signals=(),
             evidence_summary=_build_summary(
@@ -143,19 +153,14 @@ def evaluate_verdict(
             evidence_summary=summary,
         )
 
-    # rate_drop_pp <= 0: no deterioration detected
-    if change_pp is None or change_pp >= 0:
-        return DeterministicVerdict(
-            verdict="not_supported",
-            decision_reason="no_significant_deterioration",
-            signals=tuple(signals),
-            evidence_summary=summary,
-        )
-
-    # Alert rate is same/higher but history shows declining trend → ambiguous
+    # No confirmed deterioration is not a rejection of the alert. It remains
+    # operationally reviewable because this contract has no false-positive category.
     return DeterministicVerdict(
         verdict="requires_review",
-        decision_reason="ambiguous_signals",
+        decision_reason=(
+            "ambiguous_signals" if change_pp is not None and change_pp < 0
+            else "no_confirmed_deterioration"
+        ),
         signals=tuple(signals),
         evidence_summary=summary,
     )
@@ -263,20 +268,18 @@ def deterministic_fallback_explanation(
                 "evidence_ids": ["alert_0", cite_day],
             }
         ]
-    elif verdict.verdict == "not_supported":
+    elif verdict.verdict == "no_data":
         summary = (
-            f"La tasa de aceptación de la alerta ({_fmt(alert_rate)}%) no muestra "
-            f"deterioro significativo respecto al histórico ({_fmt(hist_rate)}%). "
-            f"Cobertura: {s.get('observed_days', 0)} días, "
+            "No hay datos históricos elegibles suficientes para evaluar la tasa de "
+            f"aceptación de la alerta. Cobertura: {s.get('observed_days', 0)} días, "
             f"{s.get('historical_total_transactions', 0)} transacciones."
         )
         findings = [
             {
                 "observation": (
-                    f"Sin deterioro significativo: alerta {_fmt(alert_rate)}% "
-                    f"vs histórico {_fmt(hist_rate)}%."
+                    "No se obtuvo una tasa histórica de aceptación comparable."
                 ),
-                "evidence_ids": ["alert_0", cite_day],
+                "evidence_ids": ["alert_0", "quality_0"],
             }
         ]
     else:

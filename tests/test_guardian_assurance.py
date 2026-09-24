@@ -139,7 +139,7 @@ def test_missing_observation_window_is_explicitly_not_comparable():
             "POPULATION_UNVERIFIED",
             "SOURCE_FRESHNESS_UNVERIFIED",
         ],
-        "allowed_verdicts": ["confirmed", "not_supported", "requires_review"],
+            "allowed_verdicts": ["confirmed", "no_data", "requires_review"],
     }
 
 
@@ -189,6 +189,17 @@ def test_context_rejects_invalid_historical_range(change):
 class TestDeterministicEvaluator:
     """Verify that the rule evaluator produces the correct verdict from metrics."""
 
+    def test_no_historical_data_is_no_data(self):
+        result = evaluate_verdict(
+            alert_evidence={"approval_rate": 0.1, "declined_count": 90},
+            history_evidence={"daily": []},
+            period={"approval_rate_pct": None, "total_transactions": 0},
+            data_quality={"observed_days": 0, "total_transactions": 0},
+            comparison={"change_percentage_points": None},
+        )
+        assert result.verdict == "no_data"
+        assert result.decision_reason == "no_historical_data"
+
     def test_insufficient_coverage_requires_review(self):
         """Only 2 observed days (< 7 minimum) → requires_review."""
         result = evaluate_verdict(
@@ -226,8 +237,8 @@ class TestDeterministicEvaluator:
         assert result.decision_reason == "significant_approval_rate_drop"
         assert "significant_approval_drop" in result.signals
 
-    def test_no_drop_not_supported(self):
-        """Alert rate = 85%, historical = 80% → no drop → not_supported."""
+    def test_no_drop_requires_review(self):
+        """Alert rate = 85%, historical = 80% → no confirmed deterioration."""
         result = evaluate_verdict(
             alert_evidence={"approval_rate": 0.85, "declined_count": 15},
             history_evidence={"daily": [{"declined_count": 20}] * 7},
@@ -235,8 +246,8 @@ class TestDeterministicEvaluator:
             data_quality={"observed_days": 7, "total_transactions": 700},
             comparison={"change_percentage_points": 2.0},
         )
-        assert result.verdict == "not_supported"
-        assert result.decision_reason == "no_significant_deterioration"
+        assert result.verdict == "requires_review"
+        assert result.decision_reason == "no_confirmed_deterioration"
 
     def test_minor_drop_with_declining_trend_confirmed(self):
         """Alert rate = 73%, historical = 80% → drop 7pp < 10pp but declining trend → confirmed."""
@@ -348,23 +359,23 @@ class TestDeterministicFallback:
         assert len(result["limitations"]) >= 1
         assert len(result["next_steps"]) == 1
 
-    def test_not_supported_fallback(self):
+    def test_no_data_fallback(self):
         verdict = DeterministicVerdict(
-            verdict="not_supported",
-            decision_reason="no_significant_deterioration",
+            verdict="no_data",
+            decision_reason="no_historical_data",
             signals=(),
             evidence_summary={
                 "alert_approval_rate_pct": 85.0,
-                "historical_approval_rate_pct": 80.0,
-                "historical_total_transactions": 700,
-                "observed_days": 7,
+                "historical_approval_rate_pct": None,
+                "historical_total_transactions": 0,
+                "observed_days": 0,
                 "change_percentage_points": 2.0,
                 "alert_total_transactions": 100,
                 "alert_declined_count": 15,
             },
         )
-        result = deterministic_fallback_explanation(verdict, {"alert_0", "day_0"})
-        assert result["verdict"] == "not_supported"
+        result = deterministic_fallback_explanation(verdict, {"alert_0", "quality_0"})
+        assert result["verdict"] == "no_data"
 
     def test_requires_review_fallback(self):
         verdict = DeterministicVerdict(
@@ -534,13 +545,13 @@ def test_schema_constrains_verdict_without_mutating_existing_analyst_schema():
     assert ANALYSIS_VERSION == "guardian-assured-verdict-v2"
     assert _assured_schema()["properties"]["verdict"]["enum"] == [
         "confirmed",
-        "not_supported",
+        "no_data",
         "requires_review",
     ]
     assert _assured_schema()["properties"]["next_steps"]["maxItems"] == 1
     assert _guardian_schema()["properties"]["verdict"]["enum"] == [
         "confirmed",
-        "not_supported",
+        "no_data",
         "requires_review",
     ]
 

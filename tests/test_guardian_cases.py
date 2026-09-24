@@ -120,7 +120,7 @@ def test_preauthorizations_are_analyzed_without_captures_and_with_abstention(tmp
     assert report["history"]["diagnostics"]["excluded_type_transactions"] == 5
     assert report["comparison_context"]["allowed_verdicts"] == [
         "confirmed",
-        "not_supported",
+        "no_data",
         "requires_review",
     ]
     assert report["comparison_context"]["alert_window"] is None
@@ -218,7 +218,7 @@ def test_ai_retry_uses_same_history_and_revision(tmp_path):
     assert len(sources.calls) == 1
 
 
-@pytest.mark.parametrize("verdict", ["confirmed", "not_supported"])
+@pytest.mark.parametrize("verdict", ["confirmed"])
 def test_service_rejects_definitive_dictamen_even_if_injected_provider_allows_it(tmp_path, verdict):
     service, _, provider = setup_service(tmp_path)
     provider.analyze.return_value = conclusion(verdict)

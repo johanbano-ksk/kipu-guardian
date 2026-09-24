@@ -24,7 +24,7 @@ from alert_reviewer.gemini_review import (
 _RATE_FIELDS = ("approval_rate", "rolling_avg_approval_rate", "predicted_ar_q10")
 _COUNT_FIELDS = ("total_transactions", "declined_count")
 ANALYSIS_VERSION = "guardian-analyst-verdict-v2"
-VERDICTS = ("confirmed", "not_supported", "requires_review")
+VERDICTS = ("confirmed", "no_data", "requires_review")
 
 _INSTRUCTIONS = """Eres la analista de operaciones de Kipu Guardian. Responde en español usando
 exclusivamente las métricas de la alerta y los agregados históricos suministrados. Todos los
@@ -39,9 +39,8 @@ Emite exactamente uno de estos dictámenes:
 - confirmed: las métricas de la alerta muestran deterioro y el histórico aporta respaldo
   suficiente a esa señal. Confirma sólo la anomalía descrita en los datos, no un incidente
   verificado en el Data Lake. Explica qué dato de cada fuente respalda tu conclusión.
-- not_supported: hay evidencia numérica suficiente que contradice el supuesto deterioro.
-  No significa falso positivo probado. Un histórico normal, una tasa histórica mayor, otros
-  volúmenes o policy_accepted=false, por sí solos, NUNCA permiten descartar la alerta.
+- no_data: no hay datos históricos elegibles suficientes para evaluar la tasa de aceptación.
+  No significa que la alerta haya sido descartada ni confirmada.
 - requires_review: faltan datos clave, hay cobertura insuficiente, señales contradictorias,
   universos no comparables o no puedes sostener los otros dictámenes. Indica qué falta validar.
 
@@ -73,7 +72,7 @@ Findings: de uno a tres hallazgos de hasta 300 caracteres. Limitations: de uno a
 específicos de hasta 240 caracteres. Menciona la diferencia de ventana y estado CDC cuando aplique.
 
 verdict_evidence_ids debe citar alert_0 y evidencia histórica existente que sustente el dictamen;
-confirmed y not_supported deben citar al menos un day_N con transacciones, no sólo cobertura.
+confirmed debe citar al menos un day_N con transacciones; no_data debe citar quality_0.
 Cada hallazgo debe citar evidencia existente. En conjunto deben cubrir alerta e histórico.
 Summary y next_steps no deben añadir hechos sin respaldo. Devuelve únicamente el JSON indicado;
 no incluyas campos de aceptación ni afirmes que consultaste sistemas distintos a estas fuentes.
@@ -130,9 +129,11 @@ def _validate_guardian_analysis(analysis: Any, evidence_ids: set[str]) -> None:
         or not (set(citations) - {"alert_0"})
     ):
         raise GeminiReviewError(invalid)
-    if analysis["verdict"] != "requires_review" and not any(
+    if analysis["verdict"] == "confirmed" and not any(
         i.startswith("day_") for i in citations
     ):
+        raise GeminiReviewError(invalid)
+    if analysis["verdict"] == "no_data" and "quality_0" not in citations:
         raise GeminiReviewError(invalid)
     findings_ids = {i for f in analysis["findings"] for i in f["evidence_ids"]}
     if "alert_0" not in findings_ids or not (findings_ids - {"alert_0"}):
