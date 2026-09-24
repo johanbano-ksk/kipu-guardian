@@ -117,7 +117,7 @@ function renderLiveAlerts(alerts) {
     const config = verdictConfig(verdict);
     const history = guardian.history || {};
     const historyMetrics = history.metrics || {};
-    const summary = conclusions.summary || guardian.analysis_error?.message || 'Guardian no generó una conclusión para esta alerta.';
+    const summary = conclusions.summary || (guardian.analysis_error ? 'La revisión determinística está disponible, pero la explicación con IA no pudo generarse.' : 'Guardian no generó una conclusión para esta alerta.');
 
     return `<article class="alert-card">
       <div class="alert-accent ${config.css}"></div>
@@ -136,6 +136,7 @@ function renderLiveAlerts(alerts) {
         <div class="guardian-panel">
           <div class="guardian-panel-header"><div><span class="eyebrow">Guardian assessment</span><h4>Conclusión</h4></div><div class="status-chips">${renderStatusChip('Histórico', guardian.history_status)}${renderStatusChip('Análisis', guardian.analysis_status)}</div></div>
           <p class="guardian-summary">${escapeHtml(summary)}</p>
+          ${guardian.analysis_error ? renderAnalysisNotice(guardian.analysis_error) : ''}
           ${renderAiResponse(conclusions)}
         </div>
         <details class="technical-details">
@@ -279,4 +280,9 @@ function formatDate(value) {
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
+function renderAnalysisNotice(error) {
+  const code = error?.code || 'AI_UNAVAILABLE';
+  return `<div class="analysis-notice"><span class="analysis-notice-icon">i</span><div><strong>Explicación IA no disponible</strong><span>El veredicto determinístico no depende de este servicio. Código: ${escapeHtml(code)}</span></div></div>`;
 }
