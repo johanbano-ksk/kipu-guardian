@@ -36,6 +36,12 @@ Todavía no es un servicio desatendido: falta desplegar el worker en ECS, ejecut
 la comparación shadow con Hub y cambiar Hub para consumir exclusivamente los
 eventos validados.
 
+La integración Slack está implementada como adaptador Socket Mode en
+`kipu-slack-bot`. Su guía de configuración local y despliegue está en
+[`docs/slack-integration.md`](docs/slack-integration.md). Slack sólo muestra
+`Falsa`, `Correcta` o `Requiere revisión`; el núcleo continúa limitado a tasa de
+aceptación.
+
 La salida conserva `Anomaly Validated v1` y el reviewer no muta el payload
 aceptado. El contrato final y las diferencias comprobadas se documentan en
 [`docs/kipu-final-contract.md`](docs/kipu-final-contract.md).

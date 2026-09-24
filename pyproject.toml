@@ -27,10 +27,14 @@ dashboard = [
     "fastapi>=0.115,<1",
     "uvicorn[standard]>=0.34,<1",
 ]
+slack = [
+    "slack-sdk>=3.31.0,<4",
+]
 
 [project.scripts]
 alert-reviewer-worker = "alert_reviewer.worker:run"
 kipu-guardian = "alert_reviewer.guardian_cli:main"
+kipu-slack-bot = "alert_reviewer.slack_bot:run"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/alert_reviewer"]

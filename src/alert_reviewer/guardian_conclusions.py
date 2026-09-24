@@ -72,7 +72,7 @@ class GuardianConclusions:
                 AthenaHistoryConfig(
                     profile=settings.history_aws_profile,
                     workgroup=settings.history_athena_workgroup,
-                    timeout_seconds=settings.history_athena_timeout_seconds,
+                    timeout_seconds=getattr(settings, "history_athena_timeout_seconds", 180),
                     approved_statuses=("APPROVED",),
                     declined_statuses=("DECLINED",),
                 )
