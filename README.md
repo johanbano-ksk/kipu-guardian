@@ -26,8 +26,8 @@ contrato se volvió a contrastar contra Kipu final `origin/main@d692b1b`:
   local conectado al bus real;
 - mantiene el evaluador 2.0 sólo para reproducir evidencia histórica; no está
   conectado a la regla EventBridge activa;
-- conserva como pendientes de Phase 08 el build Docker y el E2E LocalStack
-  porque Docker Desktop no está iniciado;
+- Phase 08 quedó verificada localmente con build Docker, E2E LocalStack y
+  exportación de auditoría;
 - exporta el archivo de ocurrencias del reviewer como conjuntos completos,
   únicos, válidos y válidos únicos para revisión manual;
 - mantiene la DLQ local vacía en el recorrido aceptado/rechazado.

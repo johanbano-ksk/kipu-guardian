@@ -155,7 +155,10 @@ def test_skill_cli_v2_policy_returns_exact_original_detail():
 
 @pytest.mark.skipif(
     not HISTORICAL_REPORT_PATH.exists(),
-    reason=f"Historical fixture {HISTORICAL_REPORT_PATH.name} not found (reports/ is in .gitignore)",
+    reason=(
+        f"Historical fixture {HISTORICAL_REPORT_PATH.name} not found "
+        "(reports/ is in .gitignore)"
+    ),
 )
 def test_critical_policy_backtest_keeps_exactly_expected_historical_alerts():
     historical_alerts = json.loads(HISTORICAL_REPORT_PATH.read_text(encoding="utf-8"))

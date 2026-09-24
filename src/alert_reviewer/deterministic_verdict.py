@@ -12,7 +12,6 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
-
 # ── Thresholds (approved by the team) ────────────────────────────────
 APPROVAL_DROP_THRESHOLD_PP = 10  # puntos porcentuales
 MIN_OBSERVED_DAYS = 7

@@ -1,7 +1,7 @@
 ---
 phase: 08-hourly-alert-audit
 type: execute
-status: verification_partial
+status: passed
 started: "2026-08-18"
 requirements:
   - KIPU-21

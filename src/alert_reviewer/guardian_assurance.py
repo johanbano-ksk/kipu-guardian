@@ -76,7 +76,8 @@ exactamente "{verdict}".
 
 El histórico es contexto previo, no evidencia de la ventana del incidente. No inventes una
 ventana a partir de la publicación de la alerta. Una tasa o volumen diferente no prueba
-contradicción. policy_accepted es una decisión determinística externa: no la recalcules ni modifiques.
+contradicción. policy_accepted es una decisión determinística externa: no la recalcules ni
+modifiques.
 
 analysis_profile define el universo histórico. sales incluye SALE, DEFERRED y DEFFERED;
 authorizations incluye esas ventas y PREAUTHORIZATION. CAPTURE nunca integra el denominador,
@@ -135,7 +136,7 @@ def build_comparison_context(alert: Any, history: Any) -> dict[str, Any]:
 
 
 def _assured_schema() -> dict[str, Any]:
-    # Use the same schema as the unrestricted guardian analysis, which already includes all verdict options.
+    # Reuse the unrestricted schema, which includes all verdict options.
     return _guardian_schema()
 
 

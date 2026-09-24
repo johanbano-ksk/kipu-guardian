@@ -1,11 +1,11 @@
 ---
 milestone: M8
 milestone_name: Reviewer-owned occurrence archive
-status: verification_partial
-last_updated: "2026-08-26"
-stopped_at: "Runtime realigned to final Kipu v1 contract; verification and AWS rollout pending"
+status: verified
+last_updated: "2026-09-24"
+stopped_at: "Phase 08 verified locally; AWS rollout remains separately authorized work"
 progress:
-  completed: 53
+  completed: 54
   total: 54
 ---
 
@@ -85,8 +85,9 @@ progress:
   notification or deduplication behavior.
 - The complete reviewer suite passed `148/148`; Ruff, skill package validation
   and the local exporter example also passed.
-- Docker Desktop is not running, so the current image build and LocalStack E2E
-  remain pending. No AWS deployment has been performed.
+- Final local verification passed on 2026-09-24: 1214 tests passed, 7 skipped,
+  Ruff passed, Docker image built, LocalStack E2E passed, and both export date
+  bases were verified. No AWS deployment has been performed.
 
 ## Evidence log
 

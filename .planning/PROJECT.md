@@ -54,5 +54,5 @@ Kipu
 
 ## Current milestone
 
-M8 — Reviewer-owned occurrence archive, suite local aprobada, runtime
-Docker/LocalStack pendiente y sin despliegue AWS.
+M8 — Reviewer-owned occurrence archive, suite local y runtime Docker/LocalStack
+verificados, sin despliegue AWS.

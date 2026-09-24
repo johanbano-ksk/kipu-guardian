@@ -118,7 +118,11 @@ def test_preauthorizations_are_analyzed_without_captures_and_with_abstention(tmp
     assert report["history"]["metrics"]["total_transactions"] == 50
     assert report["history"]["metrics"]["approval_rate"] == 0.2
     assert report["history"]["diagnostics"]["excluded_type_transactions"] == 5
-    assert report["comparison_context"]["allowed_verdicts"] == ["confirmed", "not_supported", "requires_review"]
+    assert report["comparison_context"]["allowed_verdicts"] == [
+        "confirmed",
+        "not_supported",
+        "requires_review",
+    ]
     assert report["comparison_context"]["alert_window"] is None
     assert report["analysis_status"] == "completed"
     assert report["policy"]["accepted"] is True

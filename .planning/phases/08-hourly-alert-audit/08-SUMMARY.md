@@ -1,8 +1,8 @@
 ---
 phase: 08-hourly-alert-audit
-status: verification_partial
+status: passed
 started: "2026-08-18"
-last_updated: "2026-08-19"
+last_updated: "2026-09-24"
 ---
 
 # Implementation summary
@@ -54,8 +54,9 @@ through `excluded_unsupported_count` rather than treated as valid Kipu alerts.
 
 ## Verification state
 
-The reviewer suite passed `148/148`, Ruff and skill package validation passed,
-and the local occurrence example produced `all/unique/valid/valid_unique =
-1/1/1/1` while preserving its alert object exactly. The phase remains open
-because Docker Desktop is not running, so the current image build and v1/v2
-LocalStack E2E have not been rerun. No AWS deployment occurred.
+The final reviewer suite passed `1214/1214` executed tests with 7 documented
+skips, Ruff passed, the Docker image built successfully, and LocalStack E2E
+passed for accepted, rejected and malformed runtime paths. The local occurrence
+example produced `all/unique/valid/valid_unique = 1/1/1/1` while preserving its
+alert object exactly. Publication and observation exports both passed. No AWS
+deployment occurred.

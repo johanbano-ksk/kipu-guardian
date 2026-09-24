@@ -252,7 +252,7 @@ class TestDeterministicEvaluator:
         assert "declining_historical_trend" in result.signals
 
     def test_minor_drop_without_trend_requires_review(self):
-        """Alert rate = 73%, historical = 80% → drop 7pp but no declining trend → requires_review."""
+        """A minor drop without a declining trend requires review."""
         result = evaluate_verdict(
             alert_evidence={"approval_rate": 0.73, "declined_count": 27},
             history_evidence={"daily": [{"declined_count": 20}] * 7},
