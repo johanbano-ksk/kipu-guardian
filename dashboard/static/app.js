@@ -117,7 +117,7 @@ function renderLiveAlerts(alerts) {
     const config = verdictConfig(verdict);
     const history = guardian.history || {};
     const historyMetrics = history.metrics || {};
-    const summary = conclusions.summary || (guardian.analysis_status === 'no_data' ? 'No hay datos históricos elegibles suficientes para evaluar la tasa de aceptación.' : guardian.analysis_error ? 'La revisión determinística está disponible, pero la explicación con IA no pudo generarse.' : 'Guardian no generó una conclusión para esta alerta.');
+    const summary = conclusions.summary || (guardian.analysis_status === 'no_data' ? 'No hay datos históricos elegibles suficientes para evaluar la tasa de aceptación.' : guardian.analysis_error?.code === 'QUERY_TIMEOUT' ? 'La consulta histórica excedió el tiempo disponible. La alerta requiere revisión.' : guardian.analysis_error ? 'La revisión histórica no pudo completarse. La alerta requiere revisión.' : 'Guardian no generó una conclusión para esta alerta.');
 
     return `<article class="alert-card">
       <div class="alert-accent ${config.css}"></div>

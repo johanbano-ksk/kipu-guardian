@@ -102,6 +102,7 @@ class GuardianCaseReview:
         config = AthenaHistoryConfig(
             profile=settings.history_aws_profile,
             workgroup=settings.history_athena_workgroup,
+            timeout_seconds=settings.history_athena_timeout_seconds,
         )
         self.reader_factory = reader_factory or (
             lambda profile: GuardianHistoryReader(config, metric_profile=profile)

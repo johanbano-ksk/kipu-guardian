@@ -118,6 +118,11 @@ las respuestas HTTP. Los modelos por defecto son `gpt-5.6-luna` y
 ni de modelo ante errores. Esta implementación local no configura ni despliega
 el Lambda existente.
 
+La consulta histórica de aceptación usa `HISTORY_ATHENA_TIMEOUT_SECONDS` y por
+defecto espera hasta 180 segundos. Si Athena agota ese tiempo, la alerta se
+conserva como `requires_review`; no se interpreta como confirmada ni como error
+de Gemini.
+
 ### Guardian: revisión con histórico y Gemini (agente Python)
 
 `GuardianAgent` integra la revisión de alertas con la investigación histórica:

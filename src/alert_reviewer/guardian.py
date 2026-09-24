@@ -41,6 +41,7 @@ class GuardianSettings(BaseSettings):
     gemini_timeout_seconds: float = Field(default=45, ge=1, le=90)
     history_aws_profile: str = "data-core"
     history_athena_workgroup: str = "primary"
+    history_athena_timeout_seconds: float = Field(default=180, ge=1, le=180)
     history_approved_statuses: str = "APPROVED"
     history_declined_statuses: str = "DECLINED"
     filter_policy_path: Path = ROOT / "config" / "filter_policy.yaml"
@@ -123,6 +124,7 @@ class GuardianAgent:
                 AthenaHistoryConfig(
                     profile=settings.history_aws_profile,
                     workgroup=settings.history_athena_workgroup,
+                    timeout_seconds=settings.history_athena_timeout_seconds,
                     approved_statuses=tuple(
                         s.strip().upper() for s in settings.history_approved_statuses.split(",")
                     ),
